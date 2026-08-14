@@ -1,0 +1,20 @@
+{
+  "lap_times": [
+    { "lap_number": 30, "lap_time_seconds": 92.1 },
+    { "lap_number": 31, "lap_time_seconds": 92.4 },
+    { "lap_number": 32, "lap_time_seconds": 93.8 },
+    { "lap_number": 33, "lap_time_seconds": 94.6 },
+    { "lap_number": 34, "lap_time_seconds": 95.2 },
+    { "lap_number": 35, "lap_time_seconds": 93.0 }
+  ],
+  "stress_events": [
+    {
+      "lap_number": 33,
+      "mood": "Stressed",
+      "arousal": 0.78,
+      "valence": 0.32,
+      "dominance": 0.55,
+      "transcript": "Box box, I've got a problem with the brakes"
+    }
+  ]
+}
