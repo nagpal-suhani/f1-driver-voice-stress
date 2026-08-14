@@ -62,7 +62,7 @@ export function HeroContent() {
           RACE-ENGINEERING DECISION SUPPORT
         </motion.div>
         <motion.h1 variants={rise} className="font-display uppercase leading-[0.95] text-5xl md:text-6xl lg:text-7xl font-semibold">
-          <span className="text-muted/60 text-2xl md:text-3xl block mb-2 tracking-widest">PROJECT NAME</span>
+          <span className="text-muted/60 text-2xl md:text-3xl block mb-2 tracking-widest">Silent Co-Driver</span>
           Read the Driver.
           <br />
           <span className="text-accent">Understand</span> the Race.
