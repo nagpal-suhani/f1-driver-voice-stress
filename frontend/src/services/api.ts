@@ -1,3 +1,6 @@
+/// <reference types="vite/client" />
+
+
 import type {
   AnalyzeAudioResponse,
   DriverSummary,
