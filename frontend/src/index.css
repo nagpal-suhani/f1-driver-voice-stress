@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: #08090b;
+}
+
+::selection {
+  background: #e10600;
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0c0d10;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2d33;
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3d45;
+}
+
+@layer components {
+  .label-micro {
+    @apply text-[10px] tracking-[0.2em] uppercase text-muted font-mono;
+  }
+
+  .panel {
+    @apply relative bg-surface border border-line;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  }
+
+  .panel-corner::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 12px;
+    height: 12px;
+    background: linear-gradient(135deg, transparent 50%, #e10600 50.5%);
+    opacity: 0.55;
+  }
+
+  .num-display {
+    @apply font-mono tabular-nums;
+  }
+
+  .btn-command {
+    @apply relative inline-flex items-center justify-center gap-2 px-7 py-3 font-display uppercase tracking-[0.14em] text-sm font-medium text-offwhite bg-accent border border-accent transition-all duration-200;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+  }
+  .btn-command:hover {
+    box-shadow: 0 0 24px rgba(225, 6, 0, 0.45);
+    background: #c00500;
+  }
+  .btn-command:disabled {
+    @apply opacity-40 cursor-not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 font-display uppercase tracking-[0.14em] text-xs font-medium text-muted border border-line bg-transparent hover:text-offwhite hover:border-muted transition-colors duration-200;
+  }
+
+  .field-shell {
+    @apply w-full bg-surface-2 border border-line px-3.5 py-3 text-sm text-offwhite font-body focus:outline-none focus:border-accent transition-colors duration-150;
+  }
+
+  .grid-overlay {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 42px 42px;
+  }
+}

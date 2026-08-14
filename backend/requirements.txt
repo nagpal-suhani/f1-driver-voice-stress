@@ -1,0 +1,19 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+httpx==0.27.2
+pydantic==2.9.2
+pydantic-settings==2.5.2
+python-dotenv==1.0.1
+python-multipart==0.0.9
+cachetools==5.5.0
+
+# Optional — used only for reading audio duration in audio_service.py.
+# Safe to remove if you don't need it.
+soundfile==0.12.1
+
+pytest==8.3.3
+
+# Add your own model dependencies below (e.g. torch, transformers,
+# onnxruntime, your inference client, etc.) once you implement
+# transcribe_audio() / classify_vocal_state() in
+# app/services/model_service.py
