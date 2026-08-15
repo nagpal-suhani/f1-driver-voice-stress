@@ -38,6 +38,9 @@ Output schema (JSON-serializable dict):
 import argparse
 import json
 import os
+import shutil
+import subprocess
+import tempfile
 from dataclasses import dataclass, field, asdict
 from typing import List, Optional
 
@@ -49,8 +52,8 @@ from scipy.signal import butter, sosfilt, resample_poly
 # Config
 # ---------------------------------------------------------------------------
 
-WHISPER_MODEL_SIZE = "small"   # tiny/base/small/medium/large-v3. small = good accuracy/speed tradeoff for a hackathon
-TARGET_SAMPLE_RATE = 16000     # Whisper expects 16kHz mono
+WHISPER_MODEL_SIZE = "small"   # tiny/base/small/medium/large-v3
+TARGET_SAMPLE_RATE = 16000     # expects 16kHz mono
 RADIO_BANDPASS = (300, 3400)   # Hz — typical radio comms voice band; strips hiss/static outside speech range
 LOW_CONFIDENCE_THRESHOLD = 0.55  # words below this get flagged for review
 
@@ -137,10 +140,94 @@ def _normalize(audio: np.ndarray) -> np.ndarray:
     return audio
 
 
+def _ffmpeg_available() -> bool:
+    return shutil.which("ffmpeg") is not None
+
+
+def _load_via_ffmpeg(path: str) -> tuple[np.ndarray, int]:
+    """Fallback decoder for formats soundfile/libsndfile can't read
+    directly (older libsndfile builds don't support mp3, and some
+    exotic containers never will). Shells out to ffmpeg to transcode
+    to a temp WAV, then reads that with soundfile. Requires ffmpeg on
+    PATH — raises a clear error if it isn't installed."""
+    if not _ffmpeg_available():
+        raise RuntimeError(
+            f"Could not decode '{path}' with soundfile, and ffmpeg is not "
+            "installed to fall back on. Install ffmpeg (e.g. `apt install "
+            "ffmpeg` / `brew install ffmpeg`) to support mp3 and other "
+            "compressed formats."
+        )
+
+    fd, wav_path = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    try:
+        subprocess.run(
+            [
+                "ffmpeg", "-y", "-loglevel", "error",
+                "-i", path,
+                "-ac", "1",                      # mono
+                "-ar", str(TARGET_SAMPLE_RATE),  # resample while we're at it
+                wav_path,
+            ],
+            check=True,
+            capture_output=True,
+            timeout=60,
+        )
+        audio, sr = sf.read(wav_path, always_2d=False)
+        return audio, sr
+    except subprocess.CalledProcessError as e:
+        stderr = e.stderr.decode(errors="ignore") if e.stderr else ""
+        raise RuntimeError(f"ffmpeg failed to decode '{path}': {stderr}") from e
+    except subprocess.TimeoutExpired as e:
+        raise RuntimeError(f"ffmpeg timed out decoding '{path}' (>60s)") from e
+    finally:
+        if os.path.exists(wav_path):
+            os.remove(wav_path)
+
+
+def _load_audio(path: str) -> tuple[np.ndarray, int]:
+    """Load an audio file into (samples, sample_rate). Tries soundfile
+    first (fast, no subprocess); falls back to ffmpeg for formats
+    soundfile can't handle — this is what makes mp3 reliable across
+    machines with older libsndfile builds."""
+    try:
+        return sf.read(path, always_2d=False)
+    except Exception as sf_error:
+        try:
+            return _load_via_ffmpeg(path)
+        except Exception as ffmpeg_error:
+            raise RuntimeError(
+                f"Failed to decode audio file '{path}'. "
+                f"soundfile error: {sf_error}. ffmpeg fallback error: {ffmpeg_error}"
+            ) from ffmpeg_error
+
+
+def _probe_duration_via_ffmpeg(path: str) -> float:
+    """Best-effort duration lookup via ffprobe when soundfile can't read
+    the file's metadata. Returns 0.0 if ffprobe is unavailable or fails —
+    duration is informational only, so a failure here shouldn't block
+    transcription."""
+    if shutil.which("ffprobe") is None:
+        return 0.0
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe", "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                path,
+            ],
+            capture_output=True, text=True, timeout=15, check=True,
+        )
+        return float(result.stdout.strip())
+    except Exception:
+        return 0.0
+
+
 def preprocess_audio(path: str) -> np.ndarray:
     """Load an audio file, downmix to mono, resample to 16kHz,
     bandpass filter, and normalize. Returns a float32 numpy array."""
-    audio, sr = sf.read(path, always_2d=False)
+    audio, sr = _load_audio(path)
 
     # downmix to mono if stereo
     if audio.ndim > 1:
@@ -196,8 +283,14 @@ def transcribe_audio(path: str, apply_preprocessing: bool = True) -> dict:
         duration = len(audio_array) / TARGET_SAMPLE_RATE
     else:
         audio_input = path
-        info = sf.info(path)
-        duration = info.duration
+        try:
+            duration = sf.info(path).duration
+        except Exception:
+            # soundfile can't read this container's metadata (e.g. mp3 on
+            # an older libsndfile) — fall back to ffprobe, or just leave
+            # duration unset. faster-whisper itself decodes via PyAV
+            # internally and handles mp3 fine regardless of this.
+            duration = _probe_duration_via_ffmpeg(path)
 
     segments_iter, info = model.transcribe(
         audio_input,

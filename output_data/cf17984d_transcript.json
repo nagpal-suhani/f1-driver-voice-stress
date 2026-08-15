@@ -1,0 +1,57 @@
+{
+  "audio_file": "process_j35j1qtu.mp3",
+  "duration_sec": 14.4,
+  "full_text": "I am stupid, switch off everything.",
+  "language": "en",
+  "segments": [
+    {
+      "id": 0,
+      "start": 10.32,
+      "end": 13.05,
+      "text": "I am stupid, switch off everything.",
+      "avg_confidence": 0.874,
+      "words": [
+        {
+          "word": "I",
+          "start": 10.32,
+          "end": 10.82,
+          "confidence": 0.419
+        },
+        {
+          "word": "am",
+          "start": 10.82,
+          "end": 10.94,
+          "confidence": 0.976
+        },
+        {
+          "word": "stupid,",
+          "start": 10.94,
+          "end": 11.28,
+          "confidence": 0.983
+        },
+        {
+          "word": "switch",
+          "start": 12.37,
+          "end": 12.61,
+          "confidence": 0.906
+        },
+        {
+          "word": "off",
+          "start": 12.61,
+          "end": 12.79,
+          "confidence": 0.97
+        },
+        {
+          "word": "everything.",
+          "start": 12.79,
+          "end": 13.05,
+          "confidence": 0.993
+        }
+      ]
+    }
+  ],
+  "low_confidence_words": [
+    "I"
+  ],
+  "request_id": "cf17984d"
+}

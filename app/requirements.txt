@@ -1,9 +1,11 @@
 fastapi
 uvicorn[standard]
 python-multipart
-transformers
+transformers<5.0.0
 torch
 soundfile
 librosa
 numpy
 pydantic
+faster-whisper
+scipy
